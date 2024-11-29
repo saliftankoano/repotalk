@@ -1,35 +1,56 @@
-import { createOllama } from 'ollama-ai-provider';
-import { streamText, convertToCoreMessages, CoreMessage, UserContent } from 'ai';
+import { StreamingTextResponse, Message } from "ai";
+import Groq from "groq-sdk";
+import { experimental_buildLlama2Prompt } from "ai/prompts";
 
-export const runtime = "edge";
-export const dynamic = "force-dynamic";
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY,
+});
 
 export async function POST(req: Request) {
-  // Destructure request data
-  const { messages, selectedModel, data } = await req.json();
+  const { messages, selectedRepo } = await req.json();
 
-  const initialMessages = messages.slice(0, -1); 
-  const currentMessage = messages[messages.length - 1]; 
+  // Get the last message
+  const lastMessage = messages[messages.length - 1];
 
-  const ollama = createOllama({});
+  // Create system prompt based on the selected repository
+  const systemPrompt = `You are a helpful AI assistant specializing in the ${selectedRepo} repository. 
+  Your responses should be focused on helping users understand and work with this codebase.
+  Always provide clear, concise explanations and code examples when relevant.`;
 
-  // Build message content array directly
-  const messageContent: UserContent = [{ type: 'text', text: currentMessage.content }];
+  try {
+    const completion = await groq.chat.completions.create({
+      messages: [
+        { role: "system", content: systemPrompt },
+        ...messages.map((message: Message) => ({
+          role: message.role,
+          content: message.content,
+        })),
+      ],
+      model: "llama-3.1-70b-versatile",
+      temperature: 0.7,
+      max_tokens: 1000,
+      top_p: 1,
+      stream: true,
+    });
 
-  // Add images if they exist
-  data?.images?.forEach((imageUrl: string) => {
-    const image = new URL(imageUrl);
-    messageContent.push({ type: 'image', image });
-  });
+    // Convert the response to a readable stream
+    const stream = new ReadableStream({
+      async start(controller) {
+        const encoder = new TextEncoder();
 
-  // Stream text using the ollama model
-  const result = await streamText({
-    model: ollama(selectedModel),
-    messages: [
-      ...convertToCoreMessages(initialMessages),
-      { role: 'user', content: messageContent },
-    ],
-  });
+        for await (const chunk of completion) {
+          const content = chunk.choices[0]?.delta?.content;
+          if (content) {
+            controller.enqueue(encoder.encode(content));
+          }
+        }
+        controller.close();
+      },
+    });
 
-  return result.toDataStreamResponse();
+    return new StreamingTextResponse(stream);
+  } catch (error) {
+    console.error("Error:", error);
+    return new Response("Error processing your request", { status: 500 });
+  }
 }

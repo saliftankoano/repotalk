@@ -1,25 +1,17 @@
 "use client";
-
+import axios from "axios";
 import React, { useEffect } from "react";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "../ui/button";
 import { CaretSortIcon, HamburgerMenuIcon } from "@radix-ui/react-icons";
 import { Sidebar } from "../sidebar";
 import { Message } from "ai/react";
-import { getSelectedModel } from "@/lib/model-helper";
+import { getSelectedRepo } from "@/lib/model-helper";
 
 interface ChatTopbarProps {
   setSelectedModel: React.Dispatch<React.SetStateAction<string>>;
@@ -29,67 +21,69 @@ interface ChatTopbarProps {
   setMessages: (messages: Message[]) => void;
 }
 
+interface GithubRepo {
+  name: string;
+}
+
 export default function ChatTopbar({
   setSelectedModel,
   isLoading,
   chatId,
   messages,
-  setMessages
+  setMessages,
 }: ChatTopbarProps) {
-  const [models, setModels] = React.useState<string[]>([]);
+  const [repos, setRepos] = React.useState<string[]>([]);
   const [open, setOpen] = React.useState(false);
   const [sheetOpen, setSheetOpen] = React.useState(false);
-  const [currentModel, setCurrentModel] = React.useState<string | null>(null);
+  const [currentRepo, setCurrentRepo] = React.useState<string | null>(null);
 
   useEffect(() => {
-    setCurrentModel(getSelectedModel());
+    setCurrentRepo(getSelectedRepo());
 
-    const env = process.env.NODE_ENV;
+    // Load repos from localStorage if they exist
+    const storedRepos = localStorage.getItem("github_repos");
+    if (storedRepos) {
+      setRepos(JSON.parse(storedRepos));
+    }
 
-    const fetchModels = async () => {
-      if (env === "production") {
-        const fetchedModels = await fetch(process.env.NEXT_PUBLIC_OLLAMA_URL + "/api/tags");
-        const json = await fetchedModels.json();
-        const apiModels = json.models.map((model : any) => model.name);
-        setModels([...apiModels]);
-      } 
-      else {
-        const fetchedModels = await fetch("/api/tags") 
-        const json = await fetchedModels.json();
-        const apiModels = json.models.map((model : any) => model.name);
-        setModels([...apiModels]);
-    }
-    }
-    fetchModels();
+    // Listen for storage events to update repos when they change
+    const handleStorageChange = () => {
+      const updatedRepos = localStorage.getItem("github_repos");
+      if (updatedRepos) {
+        setRepos(JSON.parse(updatedRepos));
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  const handleModelChange = (model: string) => {
-    setCurrentModel(model);
-    setSelectedModel(model);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem("selectedModel", model);
+  const handleRepoChange = (repo: string) => {
+    setCurrentRepo(repo);
+    setSelectedModel(repo);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("selectedRepo", repo);
     }
     setOpen(false);
   };
 
   const handleCloseSidebar = () => {
-    setSheetOpen(false);  // Close the sidebar
+    setSheetOpen(false);
   };
 
   return (
-    <div className="w-full flex px-4 py-6  items-center justify-between lg:justify-center ">
+    <div className="w-full flex px-4 py-6 items-center justify-between lg:justify-center">
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetTrigger>
           <HamburgerMenuIcon className="lg:hidden w-5 h-5" />
         </SheetTrigger>
         <SheetContent side="left">
           <Sidebar
-            chatId={chatId || ""}
             isCollapsed={false}
             isMobile={false}
             messages={messages}
             setMessages={setMessages}
-            closeSidebar={handleCloseSidebar} 
+            closeSidebar={handleCloseSidebar}
           />
         </SheetContent>
       </Sheet>
@@ -103,27 +97,25 @@ export default function ChatTopbar({
             aria-expanded={open}
             className="w-[300px] justify-between"
           >
-            {currentModel || "Select model"}
+            {currentRepo || "Select repo"}
             <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[300px] p-1">
-          {models.length > 0 ? (
-            models.map((model) => (
+          {repos.length > 0 ? (
+            repos.map((repo) => (
               <Button
-                key={model}
+                key={repo}
                 variant="ghost"
                 className="w-full"
-                onClick={() => {
-                  handleModelChange(model);
-                }}
+                onClick={() => handleRepoChange(repo)}
               >
-                {model}
+                {repo}
               </Button>
             ))
           ) : (
-            <Button variant="ghost" disabled className=" w-full">
-              No models available
+            <Button variant="ghost" disabled className="w-full">
+              No repositories available
             </Button>
           )}
         </PopoverContent>
