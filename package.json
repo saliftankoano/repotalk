@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@clerk/clerk-js": "^5.35.1",
+    "@clerk/clerk-sdk-node": "^5.0.69",
     "@clerk/nextjs": "^6.5.1",
     "@emoji-mart/data": "^1.2.1",
     "@emoji-mart/react": "^1.1.1",

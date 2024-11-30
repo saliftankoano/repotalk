@@ -11,6 +11,7 @@ import { Button } from "../ui/button";
 import { CaretSortIcon, HamburgerMenuIcon } from "@radix-ui/react-icons";
 import { Sidebar } from "../sidebar";
 import { getSelectedRepo } from "@/lib/model-helper";
+import { useAuth } from "@clerk/nextjs";
 
 interface ChatTopbarProps {
   isLoading: boolean;
@@ -19,33 +20,34 @@ interface ChatTopbarProps {
 }
 
 interface GithubRepo {
+  id: number;
   name: string;
+  html_url: string;
 }
 
 export default function ChatTopbar({ isLoading, repos }: ChatTopbarProps) {
   const [open, setOpen] = React.useState(false);
   const [sheetOpen, setSheetOpen] = React.useState(false);
   const [currentRepo, setCurrentRepo] = React.useState<string | null>(null);
-  const [storedRepos, setStoredRepos] = React.useState<string[]>([]);
+  const [storedRepos, setStoredRepos] = React.useState<GithubRepo[]>([]);
+  const { userId } = useAuth();
+  // Fetch the user's GitHub OAuth token
+  const fetchRepos = async () => {
+    const response = await fetch("/api/github-repos", {
+      method: "GET",
+    });
+
+    const { repos } = await response.json();
+    setStoredRepos(repos);
+    console.log(repos);
+  };
+  useEffect(() => {
+    fetchRepos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   useEffect(() => {
     setCurrentRepo(getSelectedRepo());
-
-    // Load repos from localStorage if they exist
-    if (repos) {
-      setStoredRepos(repos);
-    }
-
-    // Listen for storage events to update repos when they change
-    const handleStorageChange = () => {
-      const updatedRepos = repos;
-      if (updatedRepos) {
-        setStoredRepos(updatedRepos);
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
+  }, [repos]);
 
   const handleRepoChange = (repo: string) => {
     setCurrentRepo(repo);
@@ -84,15 +86,15 @@ export default function ChatTopbar({ isLoading, repos }: ChatTopbarProps) {
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[300px] p-1">
-          {repos.length > 0 ? (
-            repos.map((repo) => (
+          {storedRepos.length > 0 ? (
+            storedRepos.map((repo) => (
               <Button
-                key={repo}
+                key={repo.name}
                 variant="ghost"
                 className="w-full"
-                onClick={() => handleRepoChange(repo)}
+                onClick={() => handleRepoChange(repo.name)}
               >
-                {repo}
+                {repo.name}
               </Button>
             ))
           ) : (
@@ -105,3 +107,4 @@ export default function ChatTopbar({ isLoading, repos }: ChatTopbarProps) {
     </div>
   );
 }
+export type { GithubRepo };

@@ -8,7 +8,6 @@ import {
   DialogContent,
 } from "@/components/ui/dialog";
 import UsernameForm from "@/components/username-form";
-import { ChatRequestOptions } from "ai";
 import { Message, useChat } from "ai/react";
 import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";

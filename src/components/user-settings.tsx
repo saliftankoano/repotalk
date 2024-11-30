@@ -21,13 +21,15 @@ import { Button } from "./ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { GearIcon } from "@radix-ui/react-icons";
 import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, LogOutIcon } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
 import { set } from "zod";
 import UsernameForm from "./username-form";
 import EditUsernameForm from "./edit-username-form";
 import PullModel from "./pull-model";
-import { UserButton, UserProfile } from "@clerk/nextjs";
+import { SignOutButton, UserButton, useAuth } from "@clerk/nextjs";
+import { toast } from "sonner";
+import axios from "axios";
 
 export default function UserSettings() {
   const [name, setName] = useState("");
@@ -70,7 +72,13 @@ export default function UserSettings() {
           className="flex justify-start gap-3 w-full h-14 text-base font-normal items-center"
         >
           <div className="flex items-center gap-2">
-            <UserButton />
+            <UserButton
+              userProfileProps={{
+                additionalOAuthScopes: {
+                  github: ["read:user", "repo", "user"],
+                },
+              }}
+            />
           </div>
 
           <div className="text-xs truncate">
@@ -102,7 +110,14 @@ export default function UserSettings() {
             </DialogHeader>
           </DialogContent>
         </Dialog>
-        <Dialog></Dialog>
+        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+          <SignOutButton>
+            <div className="flex w-full gap-2 p-1 items-center cursor-pointer">
+              <LogOutIcon className="w-4 h-4" />
+              Log out
+            </div>
+          </SignOutButton>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
