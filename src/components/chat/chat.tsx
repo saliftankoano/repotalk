@@ -2,14 +2,10 @@ import React from "react";
 import ChatTopbar from "./chat-topbar";
 import ChatList from "./chat-list";
 import ChatBottombar from "./chat-bottombar";
-import { Message, useChat } from "ai/react";
 import { ChatRequestOptions } from "ai";
-import { v4 as uuidv4 } from "uuid";
 
 export interface ChatProps {
   chatId?: string;
-  setSelectedModel: React.Dispatch<React.SetStateAction<string>>;
-  messages: Message[];
   input: string;
   handleInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   handleSubmit: (
@@ -23,38 +19,28 @@ export interface ChatProps {
   formRef: React.RefObject<HTMLFormElement>;
   isMobile?: boolean;
   setInput?: React.Dispatch<React.SetStateAction<string>>;
-  setMessages: (messages: Message[]) => void;
+  repos: string[];
 }
 
 export default function Chat({
-  messages,
   input,
   handleInputChange,
   handleSubmit,
   isLoading,
   error,
   stop,
-  setSelectedModel,
   chatId,
   loadingSubmit,
   formRef,
   isMobile,
   setInput,
-  setMessages
+  repos,
 }: ChatProps) {
   return (
     <div className="flex flex-col justify-between w-full max-w-3xl h-full ">
-      <ChatTopbar
-        setSelectedModel={setSelectedModel}
-        isLoading={isLoading}
-        chatId={chatId}
-        messages={messages}
-        setMessages={setMessages}
-      />
+      <ChatTopbar isLoading={isLoading} chatId={chatId} repos={repos} />
 
       <ChatList
-        setSelectedModel={setSelectedModel}
-        messages={messages}
         input={input}
         handleInputChange={handleInputChange}
         handleSubmit={handleSubmit}
@@ -64,12 +50,10 @@ export default function Chat({
         stop={stop}
         formRef={formRef}
         isMobile={isMobile}
-        setMessages={setMessages}
+        repos={repos}
       />
 
       <ChatBottombar
-        setSelectedModel={setSelectedModel}
-        messages={messages}
         input={input}
         handleInputChange={handleInputChange}
         handleSubmit={handleSubmit}
@@ -78,7 +62,7 @@ export default function Chat({
         stop={stop}
         formRef={formRef}
         setInput={setInput}
-        setMessages={setMessages}
+        repos={repos}
       />
     </div>
   );

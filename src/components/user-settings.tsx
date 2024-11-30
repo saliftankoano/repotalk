@@ -27,6 +27,7 @@ import { set } from "zod";
 import UsernameForm from "./username-form";
 import EditUsernameForm from "./edit-username-form";
 import PullModel from "./pull-model";
+import { UserButton, UserProfile } from "@clerk/nextjs";
 
 export default function UserSettings() {
   const [name, setName] = useState("");
@@ -66,20 +67,12 @@ export default function UserSettings() {
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="flex justify-start gap-3 w-full h-14 text-base font-normal items-center "
+          className="flex justify-start gap-3 w-full h-14 text-base font-normal items-center"
         >
-          <Avatar className="flex justify-start items-center overflow-hidden">
-            <AvatarImage
-              src=""
-              alt="AI"
-              width={4}
-              height={4}
-              className="object-contain"
-            />
-            <AvatarFallback>
-              {name && name.substring(0, 2).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+          <div className="flex items-center gap-2">
+            <UserButton />
+          </div>
+
           <div className="text-xs truncate">
             {isLoading ? (
               <Skeleton className="w-20 h-4" />
@@ -90,9 +83,9 @@ export default function UserSettings() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-48 p-2">
-      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-            <PullModel />
-          </DropdownMenuItem>
+        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+          <PullModel />
+        </DropdownMenuItem>
         <Dialog>
           <DialogTrigger className="w-full">
             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
@@ -109,8 +102,7 @@ export default function UserSettings() {
             </DialogHeader>
           </DialogContent>
         </Dialog>
-        <Dialog>
-        </Dialog>
+        <Dialog></Dialog>
       </DropdownMenuContent>
     </DropdownMenu>
   );

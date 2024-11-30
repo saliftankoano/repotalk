@@ -2,7 +2,13 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/providers/theme-provider";
-import { Toaster } from "@/components/ui/sonner"
+import { Toaster } from "@/components/ui/sonner";
+import {
+  ClerkProvider,
+  SignInButton,
+  SignedIn,
+  SignedOut,
+} from "@clerk/nextjs"; // Changed import
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -12,11 +18,11 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
-  width: 'device-width',
+  width: "device-width",
   initialScale: 1,
   maximumScale: 1,
   userScalable: 1,
-}
+};
 
 export default function RootLayout({
   children,
@@ -24,13 +30,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="dark">
-          {children}
-        <Toaster />
-        </ThemeProvider>
-      </body>
-    </html>
+    <ClerkProvider
+      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!}
+    >
+      <html lang="en">
+        <body className={inter.className}>
+          <ThemeProvider attribute="class" defaultTheme="dark">
+            <SignedOut>
+              <SignInButton />
+            </SignedOut>
+            <SignedIn>
+              {children}
+              <Toaster />
+            </SignedIn>
+          </ThemeProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

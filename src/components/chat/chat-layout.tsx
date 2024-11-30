@@ -18,7 +18,7 @@ interface ChatLayoutProps {
   defaultCollapsed?: boolean;
   navCollapsedSize: number;
   chatId: string;
-  setMessages: (messages: Message[]) => void;
+  repos: string[];
 }
 
 type MergedProps = ChatLayoutProps & ChatProps;
@@ -27,7 +27,6 @@ export function ChatLayout({
   defaultLayout = [30, 160],
   defaultCollapsed = false,
   navCollapsedSize,
-  messages,
   input,
   handleInputChange,
   handleSubmit,
@@ -35,11 +34,11 @@ export function ChatLayout({
   error,
   stop,
   chatId,
-  setSelectedModel,
+
   loadingSubmit,
   formRef,
-  setMessages,
   setInput,
+  repos,
 }: MergedProps) {
   const [isCollapsed, setIsCollapsed] = React.useState(defaultCollapsed);
   const [isMobile, setIsMobile] = useState(false);
@@ -95,13 +94,7 @@ export function ChatLayout({
             : "hidden md:block"
         )}
       >
-        <Sidebar
-          isCollapsed={isCollapsed || isMobile}
-          messages={messages}
-          isMobile={isMobile}
-          chatId={chatId}
-          setMessages={setMessages}
-        />
+        <Sidebar isCollapsed={isCollapsed || isMobile} isMobile={isMobile} />
       </ResizablePanel>
       <ResizableHandle className={cn("hidden md:flex")} withHandle />
       <ResizablePanel
@@ -110,8 +103,6 @@ export function ChatLayout({
       >
         <Chat
           chatId={chatId}
-          setSelectedModel={setSelectedModel}
-          messages={messages}
           input={input}
           handleInputChange={handleInputChange}
           handleSubmit={handleSubmit}
@@ -122,7 +113,7 @@ export function ChatLayout({
           formRef={formRef}
           isMobile={isMobile}
           setInput={setInput}
-          setMessages={setMessages}
+          repos={repos}
         />
       </ResizablePanel>
     </ResizablePanelGroup>

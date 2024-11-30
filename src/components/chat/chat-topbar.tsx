@@ -10,47 +10,36 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "../ui/button";
 import { CaretSortIcon, HamburgerMenuIcon } from "@radix-ui/react-icons";
 import { Sidebar } from "../sidebar";
-import { Message } from "ai/react";
 import { getSelectedRepo } from "@/lib/model-helper";
 
 interface ChatTopbarProps {
-  setSelectedModel: React.Dispatch<React.SetStateAction<string>>;
   isLoading: boolean;
   chatId?: string;
-  messages: Message[];
-  setMessages: (messages: Message[]) => void;
+  repos: string[];
 }
 
 interface GithubRepo {
   name: string;
 }
 
-export default function ChatTopbar({
-  setSelectedModel,
-  isLoading,
-  chatId,
-  messages,
-  setMessages,
-}: ChatTopbarProps) {
-  const [repos, setRepos] = React.useState<string[]>([]);
+export default function ChatTopbar({ isLoading, repos }: ChatTopbarProps) {
   const [open, setOpen] = React.useState(false);
   const [sheetOpen, setSheetOpen] = React.useState(false);
   const [currentRepo, setCurrentRepo] = React.useState<string | null>(null);
-
+  const [storedRepos, setStoredRepos] = React.useState<string[]>([]);
   useEffect(() => {
     setCurrentRepo(getSelectedRepo());
 
     // Load repos from localStorage if they exist
-    const storedRepos = localStorage.getItem("github_repos");
-    if (storedRepos) {
-      setRepos(JSON.parse(storedRepos));
+    if (repos) {
+      setStoredRepos(repos);
     }
 
     // Listen for storage events to update repos when they change
     const handleStorageChange = () => {
-      const updatedRepos = localStorage.getItem("github_repos");
+      const updatedRepos = repos;
       if (updatedRepos) {
-        setRepos(JSON.parse(updatedRepos));
+        setStoredRepos(updatedRepos);
       }
     };
 
@@ -60,7 +49,6 @@ export default function ChatTopbar({
 
   const handleRepoChange = (repo: string) => {
     setCurrentRepo(repo);
-    setSelectedModel(repo);
     if (typeof window !== "undefined") {
       localStorage.setItem("selectedRepo", repo);
     }
@@ -78,13 +66,7 @@ export default function ChatTopbar({
           <HamburgerMenuIcon className="lg:hidden w-5 h-5" />
         </SheetTrigger>
         <SheetContent side="left">
-          <Sidebar
-            isCollapsed={false}
-            isMobile={false}
-            messages={messages}
-            setMessages={setMessages}
-            closeSidebar={handleCloseSidebar}
-          />
+          <Sidebar isCollapsed={false} isMobile={false} />
         </SheetContent>
       </Sheet>
 

@@ -9,19 +9,10 @@ import { useRouter } from "next/navigation";
 
 interface SidebarProps {
   isCollapsed: boolean;
-  messages: Message[];
   isMobile: boolean;
-  setMessages: (messages: Message[]) => void;
-  closeSidebar?: () => void;
 }
 
-export function Sidebar({
-  messages,
-  isCollapsed,
-  isMobile,
-  setMessages,
-  closeSidebar,
-}: SidebarProps) {
+export function Sidebar({ isCollapsed, isMobile }: SidebarProps) {
   const router = useRouter();
 
   return (
@@ -33,11 +24,6 @@ export function Sidebar({
         <Button
           onClick={() => {
             router.push("/");
-            // Clear messages
-            setMessages([]);
-            if (closeSidebar) {
-              closeSidebar();
-            }
           }}
           variant="ghost"
           className="flex justify-between w-full h-14 text-sm xl:text-lg font-normal items-center"
