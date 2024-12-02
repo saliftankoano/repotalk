@@ -9,12 +9,14 @@ import {
   SignedIn,
   SignedOut,
 } from "@clerk/nextjs"; // Changed import
+import { MessagesProvider, RepoProvider } from "@/context";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Ollama UI",
-  description: "Ollama chatbot web interface",
+  title: "GitCat",
+  description:
+    "GitCat is a chatbot to help you interact your GitHub repositories",
 };
 
 export const viewport = {
@@ -40,7 +42,9 @@ export default function RootLayout({
               <SignInButton />
             </SignedOut>
             <SignedIn>
-              {children}
+              <RepoProvider>
+                <MessagesProvider>{children}</MessagesProvider>
+              </RepoProvider>
               <Toaster />
             </SignedIn>
           </ThemeProvider>

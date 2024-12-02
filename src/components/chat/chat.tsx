@@ -1,17 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 import ChatTopbar from "./chat-topbar";
 import ChatList from "./chat-list";
 import ChatBottombar from "./chat-bottombar";
-import { ChatRequestOptions } from "ai";
-
+import { Message } from "./chat-bottombar";
 export interface ChatProps {
-  chatId?: string;
   input: string;
   handleInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-  handleSubmit: (
-    e: React.FormEvent<HTMLFormElement>,
-    chatRequestOptions?: ChatRequestOptions
-  ) => void;
   isLoading: boolean;
   loadingSubmit?: boolean;
   error: undefined | Error;
@@ -19,50 +13,55 @@ export interface ChatProps {
   formRef: React.RefObject<HTMLFormElement>;
   isMobile?: boolean;
   setInput?: React.Dispatch<React.SetStateAction<string>>;
-  repos: string[];
 }
 
 export default function Chat({
   input,
   handleInputChange,
-  handleSubmit,
   isLoading,
   error,
   stop,
-  chatId,
   loadingSubmit,
   formRef,
   isMobile,
   setInput,
-  repos,
 }: ChatProps) {
+  const [messages, setMessages] = React.useState<Message[]>([]);
+  const [question, setQuestion] = React.useState<string>("");
+  useEffect(() => {
+    // console.log(messages);
+  }, [messages]);
+  const retrieveMessages = (messages: Message[]) => {
+    setMessages(messages);
+    console.log(messages);
+  };
+  const handleQuestionClick = (value: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    setQuestion(value);
+  };
   return (
     <div className="flex flex-col justify-between w-full max-w-3xl h-full ">
-      <ChatTopbar isLoading={isLoading} chatId={chatId} repos={repos} />
+      <ChatTopbar isLoading={isLoading} />
 
       <ChatList
-        input={input}
+        handleQuestionClick={handleQuestionClick}
         handleInputChange={handleInputChange}
-        handleSubmit={handleSubmit}
         isLoading={isLoading}
-        loadingSubmit={loadingSubmit}
-        error={error}
-        stop={stop}
+        loadingSubmit={loadingSubmit || false}
+        isMobile={isMobile || false}
         formRef={formRef}
-        isMobile={isMobile}
-        repos={repos}
+        messages={messages}
+        stop={stop}
       />
 
       <ChatBottombar
-        input={input}
-        handleInputChange={handleInputChange}
-        handleSubmit={handleSubmit}
         isLoading={isLoading}
-        error={error}
         stop={stop}
         formRef={formRef}
         setInput={setInput}
-        repos={repos}
+        retrieveMessages={retrieveMessages}
+        questionPassed={question}
+        messages={messages}
       />
     </div>
   );

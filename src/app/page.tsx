@@ -1,4 +1,5 @@
 "use client";
+import { Message } from "@/components/chat/chat-bottombar";
 import { ChatLayout } from "@/components/chat/chat-layout";
 import {
   Dialog,
@@ -8,42 +9,14 @@ import {
   DialogContent,
 } from "@/components/ui/dialog";
 import UsernameForm from "@/components/username-form";
-import { useChat } from "ai/react";
+import { MessagesContext } from "@/context";
 import React, { useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { useSearchParams } from "next/navigation";
 
 export default function Home() {
-  const searchParams = useSearchParams();
-  const encodedRepos = searchParams.get("repos");
-  const repos = encodedRepos
-    ? JSON.parse(decodeURIComponent(encodedRepos))
-    : [];
-
-  const {
-    messages,
-    input,
-    handleInputChange,
-    handleSubmit,
-    isLoading,
-    error,
-    stop,
-    setMessages,
-    setInput,
-  } = useChat({
-    onResponse: (response) => {
-      if (response) {
-        setLoadingSubmit(false);
-      }
-    },
-    onError: (error) => {
-      setLoadingSubmit(false);
-      toast.error("An error occurred. Please try again.");
-    },
-  });
-
   const [open, setOpen] = React.useState(false);
   const [loadingSubmit, setLoadingSubmit] = React.useState(false);
+  const [messages, setMessages] = React.useState<Message[]>([]);
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
@@ -55,8 +28,6 @@ export default function Home() {
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoadingSubmit(true);
-
-    handleSubmit(e);
   };
 
   const onOpenChange = (isOpen: boolean) => {
@@ -68,35 +39,48 @@ export default function Home() {
     setOpen(isOpen);
   };
 
+  const addMessage = (message: Message) => {
+    setMessages((prev) => [...prev, message]);
+  };
+
+  const updateMessage = (index: number, message: Message) => {
+    setMessages((prev) => {
+      const newMessages = [...prev];
+      newMessages[index] = message;
+      return newMessages;
+    });
+  };
+
   return (
-    <main className="flex h-[calc(100dvh)] flex-col items-center ">
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <ChatLayout
-          input={input}
-          handleInputChange={handleInputChange}
-          handleSubmit={onSubmit}
-          isLoading={isLoading}
-          loadingSubmit={loadingSubmit}
-          error={error}
-          stop={stop}
-          navCollapsedSize={10}
-          defaultLayout={[30, 160]}
-          formRef={formRef}
-          setInput={setInput}
-          chatId={""}
-          repos={repos}
-        />
-        <DialogContent className="flex flex-col space-y-4">
-          <DialogHeader className="space-y-2">
-            <DialogTitle>Welcome to Chat!</DialogTitle>
-            <DialogDescription>
-              Enter your name to get started. This is just to personalize your
-              experience.
-            </DialogDescription>
-            <UsernameForm setOpen={setOpen} />
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
-    </main>
+    <MessagesContext.Provider
+      value={{ messages, setMessages, addMessage, updateMessage }}
+    >
+      <main className="flex h-[calc(100dvh)] flex-col items-center ">
+        <Dialog open={open} onOpenChange={onOpenChange}>
+          <ChatLayout
+            input={""}
+            handleInputChange={() => {}}
+            isLoading={false}
+            loadingSubmit={loadingSubmit}
+            error={undefined}
+            stop={() => {}}
+            navCollapsedSize={10}
+            defaultLayout={[30, 160]}
+            formRef={formRef}
+            setInput={() => {}}
+          />
+          <DialogContent className="flex flex-col space-y-4">
+            <DialogHeader className="space-y-2">
+              <DialogTitle>Welcome to Chat!</DialogTitle>
+              <DialogDescription>
+                Enter your name to get started. This is just to personalize your
+                experience.
+              </DialogDescription>
+              <UsernameForm setOpen={setOpen} />
+            </DialogHeader>
+          </DialogContent>
+        </Dialog>
+      </main>
+    </MessagesContext.Provider>
   );
 }

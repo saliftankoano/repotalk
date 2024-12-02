@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { ChatProps } from "./chat";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "../ui/button";
 import TextareaAutosize from "react-textarea-autosize";
+import { useChat } from "ai/react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Cross2Icon,
@@ -18,24 +19,42 @@ import useSpeechToText from "@/app/hooks/useSpeechRecognition";
 import MultiImagePicker from "../image-embedder";
 import useChatStore from "@/app/hooks/useChatStore";
 import Image from "next/image";
+import { useMessages } from "@/context";
 
+export interface Message {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  attachments?: {
+    url: string;
+    contentType: string;
+  }[];
+}
+export interface AllMessagesProps {
+  isLoading: boolean;
+  stop: () => void;
+  formRef: React.RefObject<HTMLFormElement>;
+  setInput?: (value: string) => void;
+  retrieveMessages: (messages: Message[]) => void;
+  questionPassed: string;
+  messages: Message[];
+}
 export default function ChatBottombar({
-  input,
-  handleInputChange,
-  handleSubmit,
   isLoading,
-  error,
   stop,
   formRef,
   setInput,
-  repos,
-}: ChatProps) {
-  const [message, setMessage] = React.useState(input);
+  retrieveMessages,
+  questionPassed,
+  messages,
+}: AllMessagesProps) {
+  const [messageInput, setMessageInput] = useState("");
   const [isMobile, setIsMobile] = React.useState(false);
   const inputRef = React.useRef<HTMLTextAreaElement>(null);
   const base64Images = useChatStore((state) => state.base64Images);
   const setBase64Images = useChatStore((state) => state.setBase64Images);
   const env = process.env.NODE_ENV;
+  const { addMessage } = useMessages();
 
   React.useEffect(() => {
     const checkScreenWidth = () => {
@@ -53,13 +72,6 @@ export default function ChatBottombar({
       window.removeEventListener("resize", checkScreenWidth);
     };
   }, []);
-
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmit(e as unknown as React.FormEvent<HTMLFormElement>);
-    }
-  };
 
   const { isListening, transcript, startListening, stopListening } =
     useSpeechToText({ continuous: true });
@@ -89,6 +101,31 @@ export default function ChatBottombar({
     }
   }, [isLoading]);
 
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
+    }
+  };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Add user message immediately
+    addMessage({
+      id: crypto.randomUUID(),
+      role: "user",
+      content: messageInput,
+    });
+
+    // Clear input
+    setMessageInput("");
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setMessageInput(e.target.value);
+    setInput && setInput(e.target.value);
+  };
+
   return (
     <div className="p-4 pb-7 flex justify-between w-full items-center gap-2">
       <AnimatePresence initial={false}>
@@ -108,7 +145,11 @@ export default function ChatBottombar({
                 <TextareaAutosize
                   autoComplete="off"
                   value={
-                    isListening ? (transcript.length ? transcript : "") : input
+                    isListening
+                      ? transcript.length
+                        ? transcript
+                        : ""
+                      : messageInput
                   }
                   ref={inputRef}
                   onKeyDown={handleKeyPress}
@@ -153,7 +194,9 @@ export default function ChatBottombar({
                       variant="ghost"
                       size="icon"
                       type="submit"
-                      disabled={isLoading || !input.trim() || isListening}
+                      disabled={
+                        isLoading || !messageInput.trim() || isListening
+                      }
                     >
                       <SendHorizonal className="w-5 h-5 " />
                     </Button>

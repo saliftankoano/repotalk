@@ -8,15 +8,19 @@ import { useTheme } from "next-themes";
 
 interface ButtonCodeblockProps {
   code: string;
+  language?: string;
 }
 
-export default function CodeDisplayBlock({ code }: ButtonCodeblockProps) {
+export default function CodeDisplayBlock({
+  code,
+  language,
+}: ButtonCodeblockProps) {
   const [isCopied, setisCopied] = React.useState(false);
   const { theme } = useTheme();
 
   const filteredCode = code.split("\n").slice(1).join("\n") || code;
-  const language = code.split("\n")[0] || "tsx";
-  
+  const detectedLanguage = code.split("\n")[0] || "tsx";
+
   const copyToClipboard = () => {
     navigator.clipboard.writeText(filteredCode);
     setisCopied(true);

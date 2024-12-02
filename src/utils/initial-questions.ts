@@ -1,35 +1,26 @@
 export const INITIAL_QUESTIONS = [
   {
-    content: "What is the capital of France?",
+    content: "What is the purpose of this repository?",
   },
   {
-    content: 'Who wrote "To Kill a Mockingbird"?',
+    content: "What are the key features of this repository?",
   },
   {
-    content: "What is the boiling point of water in Celsius?",
+    content: "What technologies and libraries are used in this repository?",
   },
   {
-    content: "How many planets are there in our solar system?",
+    content: "How can I contribute to this repository?",
   },
   {
-    content: "What year did the Titanic sink?",
+    content: "What is the current state of development for this repository?",
   },
   {
-    content: "Who painted the Mona Lisa?",
+    content: "How does this repository handle user data and security?",
   },
   {
-    content: "What is the square root of 144?",
+    content: "What are the plans for future development and maintenance?",
   },
   {
-    content: "Who is the current President of the United States?",
-  },
-  {
-    content: "What is the tallest mountain in the world?",
-  },
-  {
-    content: "What is the chemical symbol for gold?",
-  },
-  {
-    content: "Who discovered penicillin?",
+    content: "How does this repository handle issues and bug reports?",
   },
 ];
