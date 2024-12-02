@@ -310,8 +310,8 @@ export default function ChatList({
                   <Avatar>
                     <AvatarImage
                       src="/gitcat.png"
-                      alt="AI"
-                      className="object-contain dark:invert"
+                      alt="Gitcat avatar"
+                      className="object-contain dark:invert hover:scale-150 transition-transform duration-200"
                     />
                   </Avatar>
                   <span className="bg-accent p-3 rounded-md max-w-xs sm:max-w-2xl overflow-x-auto">

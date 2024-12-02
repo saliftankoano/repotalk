@@ -50,7 +50,6 @@ export default function Chat({
         loadingSubmit={loadingSubmit || false}
         isMobile={isMobile || false}
         formRef={formRef}
-        messages={messages}
         stop={stop}
       />
 
